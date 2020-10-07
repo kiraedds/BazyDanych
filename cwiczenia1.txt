@@ -1,0 +1,37 @@
+6a
+select imie, nazwisko from pracownicy
+6b
+select distinct id_pracownika from wynagrodzenie, pensja_stanowisko where kwota > 1000 order by id_pracownika
+6c
+select id_pracownika from premia join  wynagrodzenie on premia.id_premii = wynagrodzenie.id_premii join pensja_stanowisko on pensja_stanowisko.id_pensji=wynagrodzenie.id_pensji where premia.kwota =0 and pensja_stanowisko.kwota >2000
+6d
+select imie from pracownicy where imie like 'j%'
+6e
+select imie, nazwisko from pracownicy where imie like '%a' and nazwisko like '%n%';
+6f
+6g
+select imie,nazwisko from pracownicy join wynagrodzenie on pracownicy.id_pracownika = wynagrodzenie.id_pracownika join pensja_stanowisko on pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji where kwota >1500 and kwota <3000
+6h
+7a
+select kwota,imie,nazwisko from pracownicy join wynagrodzenie on pracownicy.id_pracownika = wynagrodzenie.id_pracownika join pensja_stanowisko on pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji order by kwota
+7b
+select pensja_stanowisko.kwota,imie,nazwisko from pracownicy join wynagrodzenie on pracownicy.id_pracownika = wynagrodzenie.id_pracownika join pensja_stanowisko on pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji join premia on premia.id_premii = wynagrodzenie.id_premii order by pensja_stanowisko.kwota , premia.kwota 
+7c
+select stanowisko , count(stanowisko) from pensja_stanowisko group by stanowisko
+7d
+select avg(kwota), max(kwota), min(kwota) from pensja_stanowisko where stanowisko = 'kierownik'  
+7e
+select sum(kwota) as suma from pensja_stanowisko
+7f
+select sum(kwota) as suma from pensja_stanowisko group by stanowisko
+7g
+select count(premia.kwota)from wynagrodzenie join premia on wynagrodzenie.id_premii = premia.id_premii join pensja_stanowisko on pensja_stanowisko.id_pensji= wynagrodzenie.id_pensji group by stanowisko
+7h
+DELETE  FROM pracownicy join wynagrodzenie on wynagrodzenie.id_pracownika = pracownicy.id_pracownika join pensja_stanowisko on pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji WHERE kwota < 1200
+8a
+8b
+8c
+select length(nazwisko) as len, UPPER(nazwisko) from pracownicy order by len DESC limit 1
+8d
+select imie,nazwisko,adres,telefon, MD5(cast(kwota as character varying)) from pracownicy join wynagrodzenie on pracownicy.id_pracownika = wynagrodzenie.id_pracownika join pensja_stanowisko on pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji 
+9
