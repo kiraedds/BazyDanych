@@ -1,0 +1,216 @@
+tablice:
+
+
+-- Table: public.producenci
+
+-- DROP TABLE public.producenci;
+
+CREATE TABLE public.producenci
+(
+    id_producenta integer NOT NULL,
+    nazwa_producenta character varying COLLATE pg_catalog."default",
+    mail character varying COLLATE pg_catalog."default",
+    telefon integer,
+    CONSTRAINT producenci_pkey PRIMARY KEY (id_producenta)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.producenci
+    OWNER to postgres;
+	
+-- Table: public.produkty
+
+-- DROP TABLE public.produkty;
+
+CREATE TABLE public.produkty
+(
+    id_produktu integer NOT NULL,
+    nazwa_produktu character varying COLLATE pg_catalog."default",
+    cena integer,
+    id_producenta integer,
+    CONSTRAINT produkty_pkey PRIMARY KEY (id_produktu),
+    CONSTRAINT produkty_id_producenta_fkey FOREIGN KEY (id_producenta)
+        REFERENCES public.producenci (id_producenta) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.produkty
+    OWNER to postgres;
+	
+	
+	-- Table: public.zamowienia
+
+-- DROP TABLE public.zamowienia;
+
+CREATE TABLE public.zamowienia
+(
+    id_zamowienia integer NOT NULL,
+    id_produktu integer,
+    ilosc integer,
+    data date,
+    CONSTRAINT zamowienia_pkey PRIMARY KEY (id_zamowienia),
+    CONSTRAINT zamowienia_id_produktu_fkey FOREIGN KEY (id_produktu)
+        REFERENCES public.produkty (id_produktu) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.zamowienia
+    OWNER to postgres;
+	
+	
+11a
+SELECT FORMAT('Producent: %s, liczba_zamowien: %s, wartosc_zamowienia: %s', producenci.nazwa_producenta, SUM(zamowienia.ilosc),zamowienia.ilosc*produkty.cena) FROM produkty INNER JOIN zamowienia ON(produkty.id_produktu = zamowienia.id_produktu) INNER JOIN producenci ON( produkty.id_producenta = producenci.id_producenta) GROUP BY producenci.nazwa_producenta, zamowienia.ilosc*produkty.cena;
+11b
+SELECT FORMAT('Produkt: %s, liczba_zamowien: %s', produkty.nazwa_produktu, sum(zamowienia.ilosc)) FROM produkty INNER JOIN zamowienia ON produkty.id_produktu = zamowienia.id_produktu GROUP BY produkty.nazwa_produktu;
+11c
+SELECT * from produkty NATURAL JOIN zamowienia;
+11d
+11e
+SELECT id_zamowienia, extract(month from data) from zamowienia where extract(month from data)=1 ;
+11f
+SELECT sum(ilosc), extract(dow from data) as dt from zamowienia group by dt order by dt desc limit 1;
+11g
+SELECT id_produktu, count (id_produktu) as liczba from zamowienia group by id_produktu order by liczba desc;
+12a
+SELECT FORMAT('Produkt %s, którego producentem jest %s , zamowiono %s razy',UPPER(produkty.nazwa_produktu),LOWER(producenci.nazwa_producenta), zamowienia.ilosc) as opis FROM produkty INNER JOIN zamowienia ON(produkty.id_produktu = zamowienia.id_produktu) INNER JOIN producenci ON (produkty.id_producenta = producenci.id_producenta) ORDER BY zamowienia.ilosc;
+12b
+SELECT a.id_zamowienia, b.cena*a.ilosc AS cenaa FROM zamowienia a INNER JOIN produkty b ON(a.id_produktu=b.id_produktu) GROUP BY cenaa,a.id_zamowienia ORDER BY cenaa offset 3;
+12c
+
+CREATE TABLE public.klienci
+(
+    id_klienta integer,
+    mail character varying,
+    telefon integer,
+    PRIMARY KEY (id_klienta)
+)
+WITH (
+    OIDS = FALSE
+);
+
+ALTER TABLE public.klienci
+    OWNER to postgres;
+	
+12d
+
+ALTER TABLE public.zamowienia
+    ADD COLUMN id_klienta integer;
+ALTER TABLE public.zamowienia
+    ADD FOREIGN KEY (id_klienta)
+    REFERENCES public.klienci (id_klienta) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+	
+	
+12e
+SELECT klienci.id_klienta, produkty.nazwa_produktu, zamowienia.ilosc, produkty.cena*zamowienia.ilosc AS wartosc_zamowienia FROM zamowienia INNER JOIN produkty ON (zamowienia.id_produktu=produkty.id_produktu) INNER JOIN klienci ON (zamowienia.id_klienta=klienci.id_klienta); 
+12f
+
+(SELECT FORMAT('NAJCZESCIEJ ZAMAWIAJACY %s, ilosc towarow %s, wartosc %s',klienci.id_klienta,SUM(zamowienia.ilosc),SUM(zamowienia.ilosc*produkty.cena)) FROM zamowienia INNER JOIN klienci ON(zamowienia.id_klienta=klienci.id_klienta) INNER JOIN produkty ON(zamowienia.id_produktu = produkty.id_produktu) GROUP BY klienci.id_klienta,zamowienia.ilosc ORDER BY zamowienia.ilosc*klienci.id_klienta desc LIMIT 1)
+UNION
+(SELECT FORMAT('NAJRZADZIEJ ZAMAWIAJACY %s, ilosc towarow %s, wartosc %s',klienci.id_klienta,SUM(zamowienia.ilosc),SUM(zamowienia.ilosc*produkty.cena)) FROM zamowienia INNER JOIN klienci ON(zamowienia.id_klienta=klienci.id_klienta) INNER JOIN produkty ON(zamowienia.id_produktu = produkty.id_produktu) GROUP BY klienci.id_klienta,zamowienia.ilosc ORDER BY zamowienia.ilosc*klienci.id_klienta  LIMIT 1);
+
+12g
+DELETE FROM produkty WHERE id_produktu = (SELECT produkty.id_produktu FROM zamowienia RIGHT OUTER JOIN produkty ON( zamowienia.id_produktu = produkty.id_produktu) WHERE zamowienia.id_produktu IS NULL);
+13a
+-- Table: public.numer
+
+-- DROP TABLE public.numer;
+
+CREATE TABLE public.numer
+(
+    liczba integer
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.numer
+    OWNER to postgres;
+	
+13b
+CREATE SEQUENCE liczba_seq INCREMENT 5 MINVALUE 0 MAXVALUE 125 START 100 CYCLE;
+
+13c
+DO
+$do$
+BEGIN 
+   FOR i IN 1..7 LOOP
+      INSERT INTO sklep.numer(liczba) VALUES (nextval('liczba_seq'));                    
+   END LOOP;
+END
+$do$;
+
+13d
+ALTER SEQUENCE liczba_seq INCREMENT 6;
+13e
+SELECT last_value FROM liczba_seq;
+SELECT last_value+increment_by FROM liczba_seq;
+13f
+DROP SEQUENCE liczba_seq;
+
+14a
+SELECT usename AS role_name,
+  CASE 
+     WHEN usesuper AND usecreatedb THEN 
+	   CAST('superuser, create database' AS pg_catalog.text)
+     WHEN usesuper THEN 
+	    CAST('superuser' AS pg_catalog.text)
+     WHEN usecreatedb THEN 
+	    CAST('create database' AS pg_catalog.text)
+     ELSE 
+	    CAST('' AS pg_catalog.text)
+  END role_attributes
+FROM pg_catalog.pg_user
+ORDER BY role_name desc;
+
+14b
+CREATE USER Superuser290933 SUPERUSER;
+CREATE USER guest290933 LOGIN PASSWORD '';
+GRANT CONNECT ON DATABASE s290933 TO guest290933;
+GRANT CONNECT ON SCHEMA public TO guest290933;
+GRANT SELECT ALL ON ALL TABLES IN SCHEMA public TO guest290933;
+14c
+ALTER USER Superuser290933  WITH NOSUPERUSER;
+ALTER USER Superuser290933 RENAME TO student;
+ALTER USER student PASWORD '';
+GRANT CONNECT ON DATABASE s290933 TO student;
+GRANT CONNECT ON SCHEMA public TO student;
+GRANT SELECT ALL ON ALL TABLES IN SCHEMA public TO student;
+DROP USER guest290933;
+15a
+BEGIN;
+UPDATE produkty SET cena=cena+10;
+COMMIT;
+15b
+
+BEGIN;
+UPDATE produkty SET cena=cena*1.1 WHERE id_produkt = 3;
+SAVEPOINT S1;
+UPDATE zamowienia SET ilosc=ilosc*1.25;
+SAVEPOINT S2;
+DELETE CASCADE FROM klienci WHERE id_klienta = (SELECT zamowienia.id_klienta FROM zamowienia INNER JOIN produkty ON(zamowienia.id_produktu = produkty.id_produktu) GROUP BY zamowienia.id_klienta ORDER BY SUM(zamowienia.ilosc) DESC LIMIT 1);
+ROLLBACK TO SAVEPOINT S1;
+ROLLBACK TO SAVEPOINT S2;
+ROLLBACK;
+
+15c
+
+
+
+
+	
