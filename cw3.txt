@@ -1,0 +1,25 @@
+6a
+SELECT DISTINCT SUM(ST_Length(geometria)) FROM cw3.drogi;
+6b
+SELECT ST_AsEWKT(geometria), ST_Area(geometria), ST_Perimeter(geometria)
+FROM cw3.budynki
+WHERE nazwa LIKE 'BuildingA';
+6c
+SELECT nazwa, ST_Area(geometria)
+FROM cw3.budynki
+ORDER BY nazwa;
+6d
+SELECT nazwa, ST_Perimeter(geometria)
+FROM cw3.budynki
+ORDER BY ST_Area(geometria) DESC LIMIT 2;
+6e
+SELECT ST_Distance(budynki.geometria, punkty_informacyjne.geometria)
+FROM cw3.budynki, cw3.punkty_informacyjne
+WHERE budynki.nazwa LIKE 'BuildingC' AND punkty_informacyjne.nazwa LIKE 'G';
+6f
+SELECT (ST_Area((SELECT geometria FROM cw3.budynki WHERE nazwa LIKE 'BuildingC')) - ST_Area(ST_Intersection(ST_Buffer((SELECT geometria FROM cw3.budynki WHERE nazwa LIKE 'BuildingB'), 0.5), (SELECT geometria FROM cw3.budynki WHERE nazwa LIKE 'BuildingC')))) AS "Area with buffer";
+6g
+SELECT id, nazwa
+FROM cw3.budynki
+WHERE ST_Y(ST_Centroid(geometria)) > ST_Y(ST_PointN((SELECT geometria FROM cw3.drogi WHERE nazwa LIKE 'RoadX'), 1));
+SELECT ST_Area(ST_SymDifference((SELECT geometria FROM cw3.budynki WHERE nazwa LIKE 'BuildingC'), ST_GeomFromText('POLYGON((4 7, 6 7, 6 8, 4 8, 4 7))')));
